@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Flow Viewer</title>
+    <meta name="description" content="TODO">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="/static/js/go-debug.js"></script>
+  </head>
+  <body>
+    <h1>Flow Viewer</h1>
+    <p>Hello world! This is workflow #{{printf "%d" .Workflow.UID}} owned by user {{printf "%s" .User.Username}}!</p>
+    <div id="myWorkflowDiv" style="width:1000px; height:550px; background-color: #DAE4E4;"></div>
+    <script src="/static/js/workflow.js"></script>
+  </body>
+</html>
