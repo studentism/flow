@@ -13,8 +13,9 @@
 
       flowDiagram = $(go.Diagram, "flowDiv",
       {
-        initialContentAlignment: go.Spot.Center, // center the content
-        "grid.visible": true,
+        "initialContentAlignment": go.Spot.Center, // center the content
+        "clickCreatingTool.archetypeNodeData": { "nodename": "Node", color: "white" }, // allow double-click in background to create new node
+        "grid.visible": true,         // turn on grid view
         "undoManager.isEnabled": true // enable Ctrl-Z to undo and Ctrl-Y to redo
       });
 
@@ -40,25 +41,28 @@
         ];
       }
 
-    flowDiagram.nodeTemplateMap.add("", // the default category
-      $(go.Node, "Auto", nodeStyle(),   // the shape will go around the TextBlock
-        $(go.Shape,
-          new go.Binding("figure", "fig"), // Shape.figure is bound to Node.data.fig
-          new go.Binding("fill", "color"), // Shape.fill is bound to Node.data.color
-          new go.Binding("angle"),         // Shape.(angle|scale) is bound to Node.data.$1
-          new go.Binding("scale")),
-        $(go.TextBlock,
-          { margin: 5 }, // leave some room around the text
-          // TextBlock.text is bound to Node.data.key
-          new go.Binding("text", "nodename").makeTwoWay())
-        ));
+      flowDiagram.nodeTemplateMap.add("", // the default category
+        $(go.Node, "Auto", nodeStyle(),   // the shape will go around the TextBlock
+          $(go.Shape,
+            new go.Binding("figure", "fig"), // Shape.figure is bound to Node.data.fig
+            new go.Binding("fill", "color"), // Shape.fill is bound to Node.data.color
+            new go.Binding("angle"),         // Shape.(angle|scale) is bound to Node.data.$1
+            new go.Binding("scale")),
+          $(go.TextBlock,
+            {
+              "margin": 5,        // leave some room around the text
+              "editable": true    // allow in-place editing by user
+            },
+            // TextBlock.text is bound to Node.data.nodename
+            new go.Binding("text", "nodename").makeTwoWay())
+          ));
 
-    // using default Link template for now by not setting Diagram.linkTemplate
+      // using default Link template for now by not setting Diagram.linkTemplate
 
-    // create the model data that will be represented by Nodes and Links
-    //flowDiagram.model = new go.GraphLinksModel({{index .Workflow.Diagram "nodeDataArray"}},{{index .Workflow.Diagram "linkDataArray"}});
-    flowDiagram.model = go.Model.fromJson({{.Workflow.Diagram}});
-    document.getElementById("mySavedFlow").value = flowDiagram.model.toJson();
+      // create the model data that will be represented by Nodes and Links
+      //flowDiagram.model = new go.GraphLinksModel({{index .Workflow.Diagram "nodeDataArray"}},{{index .Workflow.Diagram "linkDataArray"}});
+      flowDiagram.model = go.Model.fromJson({{.Workflow.Diagram}});
+      document.getElementById("mySavedFlow").value = flowDiagram.model.toJson();
     }
 
     function save() {
@@ -72,7 +76,7 @@
     <h1>Flow Viewer</h1>
     <p>Hello world! This is workflow #{{printf "%d" .Workflow.UID}} owned by user {{printf "%s" .User.Username}}!</p>
     <div id="flowDiv" style="width:1000px; height:550px; background-color: #DAE4E4;"></div>
-    <button id="SaveButton" onclick="save()">Write</button>
+    <button id="SaveButton" onclick="save()">Save</button>
     <textarea id="mySavedFlow" style="width:100%;height:250px">
     testing
     </textarea>
