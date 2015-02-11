@@ -18,8 +18,30 @@
         "undoManager.isEnabled": true // enable Ctrl-Z to undo and Ctrl-Y to redo
       });
 
-    flowDiagram.nodeTemplate =
-      $(go.Node, "Auto",    // the shape will go around the TextBlock
+      // when the document is modified, add a "*" to the title and enable the "Save" button
+      flowDiagram.addDiagramListener("Modified", function(e) {
+        var button = document.getElementById("SaveButton");
+        if (button) button.disabled = !flowDiagram.isModified;
+        var idx = document.title.indexOf("*")
+        if (flowDiagram.isModified) {
+          if (idx < 0) document.title += "*";
+        }
+        else if (idx >= 0) {
+          document.title = document.title.substr(0, idx);
+        }
+      });
+
+      function nodeStyle() {
+        return [
+        new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+        {
+          isShadowed: true
+        }
+        ];
+      }
+
+    flowDiagram.nodeTemplateMap.add("", // the default category
+      $(go.Node, "Auto", nodeStyle(),   // the shape will go around the TextBlock
         $(go.Shape,
           new go.Binding("figure", "fig"), // Shape.figure is bound to Node.data.fig
           new go.Binding("fill", "color"), // Shape.fill is bound to Node.data.color
@@ -28,8 +50,8 @@
         $(go.TextBlock,
           { margin: 5 }, // leave some room around the text
           // TextBlock.text is bound to Node.data.key
-          new go.Binding("text", "nodename"))
-        );
+          new go.Binding("text", "nodename").makeTwoWay())
+        ));
 
     // using default Link template for now by not setting Diagram.linkTemplate
 
@@ -41,7 +63,7 @@
 
     function save() {
       document.getElementById("mySavedFlow").value = flowDiagram.model.toJson();
-      //flowDiagram.model.toJson();
+      flowDiagram.isModified = false;
     }
 
     </script>
