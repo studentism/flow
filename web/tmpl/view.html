@@ -19,6 +19,60 @@
         "undoManager.isEnabled": true // enable Ctrl-Z to undo and Ctrl-Y to redo
       });
 
+      // Define the appearance and behavior for Nodes:
+
+      // First, define the shared context menu for all Nodes, Links, and Groups.
+      // To simplify this code we define a function for creating a context menu button:
+      function makeButton(text, action, visiblePredicate) {
+        if (visiblePredicate === undefined) visiblePredicate = function() { return true; };
+        return $("ContextMenuButton",
+                 $(go.TextBlock, text),
+                 { click: action },
+                 new go.Binding("visible", "", visiblePredicate).ofObject());
+      }
+
+      // a context menu is an Adornment with a bunch of buttons in them
+      var partContextMenu =
+        $(go.Adornment, "Vertical",
+            makeButton("Properties",
+                       function(e, obj) {                     // the OBJ is this Button
+                         var contextmenu = obj.part;          // the Button is in the context menu Adornment
+                         var part = contextmenu.adornedPart;  // the adornedPart is the Part that the context menu adorns
+                         // now can do something with PART, or with its data, or with the Adornment (the context menu)
+                         if (part instanceof go.Link) alert(linkInfo(part.data));
+                         else if (part instanceof go.Group) alert(groupInfo(contextmenu));
+                         else alert(nodeInfo(part.data));
+                       }),
+            makeButton("Cut",
+                       function(e, obj) { e.diagram.commandHandler.cutSelection(); },
+                       function(o) { return o.diagram.commandHandler.canCutSelection(); }),
+            makeButton("Copy",
+                       function(e, obj) { e.diagram.commandHandler.copySelection(); },
+                       function(o) { return o.diagram.commandHandler.canCopySelection(); }),
+            makeButton("Paste",
+                       function(e, obj) { e.diagram.commandHandler.pasteSelection(e.diagram.lastInput.documentPoint); },
+                       function(o) { return o.diagram.commandHandler.canPasteSelection(); }),
+            makeButton("Delete",
+                       function(e, obj) { e.diagram.commandHandler.deleteSelection(); },
+                       function(o) { return o.diagram.commandHandler.canDeleteSelection(); }),
+            makeButton("Undo",
+                       function(e, obj) { e.diagram.commandHandler.undo(); },
+                       function(o) { return o.diagram.commandHandler.canUndo(); }),
+            makeButton("Redo",
+                       function(e, obj) { e.diagram.commandHandler.redo(); },
+                       function(o) { return o.diagram.commandHandler.canRedo(); })
+        );
+
+      function nodeInfo(d) {  // Tooltip info for a node data object
+        var str = "Node " + d.key + "\n";
+        /*if (d.group)
+          str += "member of " + d.group;
+        else
+          str += "top-level node";*/
+        return str;
+      }
+
+
       // when the document is modified, add a "*" to the title and enable the "Save" button
       flowDiagram.addDiagramListener("Modified", function(e) {
         var button = document.getElementById("SaveButton");
@@ -35,14 +89,15 @@
       function nodeStyle() {
         return [
         new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify),
+        //new go.Binding("itemArray", "items").makeTwoWay(),
         {
           isShadowed: true
         }
         ];
       }
 
-      flowDiagram.nodeTemplateMap.add("", // the default category
-        $(go.Node, "Auto", nodeStyle(),   // the shape will go around the TextBlock
+      flowDiagram.nodeTemplateMap.add("",     // the default category
+        $(go.Node, "Auto", nodeStyle(),       // the shape will go around the TextBlock
           $(go.Shape,
             new go.Binding("figure", "fig"), // Shape.figure is bound to Node.data.fig
             new go.Binding("fill", "color"), // Shape.fill is bound to Node.data.color
@@ -54,10 +109,47 @@
               "editable": true    // allow in-place editing by user
             },
             // TextBlock.text is bound to Node.data.nodename
-            new go.Binding("text", "nodename").makeTwoWay())
-          ));
+            new go.Binding("text", "nodename").makeTwoWay()),
+          { // this tooltip is shared by all nodes
+            toolTip:
+              $(go.Adornment, "Auto",
+                $(go.Shape, { "fill": "#FFFFCC" }),
+                $(go.TextBlock, {margin: 4},
+                  new go.Binding("text", "", nodeInfo))
+                ),
+            contextMenu: partContextMenu  // this context menu Adornment is shared by all nodes
+          }
+        )
+      );
 
-      // using default Link template for now by not setting Diagram.linkTemplate
+      // using default Link template for now by not setting flowDiagram.linkTemplate
+
+      // Define the behavior for the Diagram background:
+      function diagramInfo(model) {  // Tooltip info for the diagram's model, very silly at the moment
+        return "Model:\n" + model.nodeDataArray.length + " nodes, " + model.linkDataArray.length + " links";
+      }
+
+      // provide a tooltip for the background of the Diagram, when not over any Part
+      flowDiagram.toolTip =
+        $(go.Adornment, "Auto",
+          $(go.Shape, { fill: "#FFFFCC" }),
+          $(go.TextBlock, { margin: 4 },
+            new go.Binding("text", "", diagramInfo))
+        );
+
+      // provide a context menu for the background of the Diagram, when not over any Part
+      flowDiagram.contextMenu =
+        $(go.Adornment, "Vertical",
+            makeButton("Paste",
+                       function(e, obj) { e.diagram.commandHandler.pasteSelection(e.diagram.lastInput.documentPoint); },
+                       function(o) { return o.diagram.commandHandler.canPasteSelection(); }),
+            makeButton("Undo",
+                       function(e, obj) { e.diagram.commandHandler.undo(); },
+                       function(o) { return o.diagram.commandHandler.canUndo(); }),
+            makeButton("Redo",
+                       function(e, obj) { e.diagram.commandHandler.redo(); },
+                       function(o) { return o.diagram.commandHandler.canRedo(); })
+        );
 
       // create the model data that will be represented by Nodes and Links
       //flowDiagram.model = new go.GraphLinksModel({{index .Workflow.Diagram "nodeDataArray"}},{{index .Workflow.Diagram "linkDataArray"}});

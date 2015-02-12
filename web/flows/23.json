@@ -1,0 +1,21 @@
+{ "class": "go.GraphLinksModel",
+  "linkFromPortIdProperty": "fromPort",
+  "linkToPortIdProperty": "toPort",
+  "nodeDataArray":[
+{ "key": "data_001", "color": "lightblue", "fig": "Circle", "loc":"2 -2", "items":[
+  "/nfs/share/file1", "/nfs/share/file2", "/home/local/file1"
+]},
+{ "key": "mriconvert_001", "nodename": "mriconvert", "color": "lightsteelblue", "fig": "RoundedRectangle", "loc":"70 0", "items":[
+  "/usr/local/freesurfer/bin/mriconvert"
+]},
+{ "key": "fslmaths_001", "nodename": "fslmaths", "color": "lightsteelblue", "fig": "RoundedRectangle", "loc":"167.20009359205795 0"},
+{ "key": "fslmaths_002", "nodename": "fslmaths", "color": "lightsteelblue", "fig": "RoundedRectangle", "loc":"0 70"},
+{ "key": "data_002", "color": "pink", "fig": "Triangle", "angle": 180, "scale": 0.5, "loc":"84.92372640455794 70"}
+  ],
+  "linkDataArray":[
+  { "from": "data_001", "to": "mriconvert_001", "fromPort":"data", "toPort":"I"},
+  { "from": "mriconvert_001", "to": "fslmaths_001", "fromPort":"O", "toPort":"I"},
+  { "from": "fslmaths_001", "to": "fslmaths_002", "fromPort":"O", "toPort":"I"},
+  { "from": "fslmaths_002", "to": "data_002", "fromPort":"O", "toPort":"data" }
+  ]
+}
